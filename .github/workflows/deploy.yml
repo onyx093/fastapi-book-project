@@ -53,4 +53,4 @@ jobs:
             git reset --hard origin/main
             # (Optional) Update the docker-compose file to use the latest image if necessary.
             # docker-compose pull && docker compose down with others
-            sudo docker-compose up --detach
+            sudo docker-compose up --build --detach
