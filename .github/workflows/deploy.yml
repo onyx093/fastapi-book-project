@@ -1,4 +1,4 @@
-name: CD Pipeline to Google Cloud Run(Staging/Production)
+name: CD Pipeline to Google Compute Engine(Staging/Production)
 
 on:
   push:
@@ -28,24 +28,33 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Authenticate with GCP
-        uses: google-github-actions/auth@v2
+      - name: Set up Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
         with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          export_default_credentials: true
 
-      - name: Configure Docker
+      - name: Authenticate Docker to GCR
         run: |
-          gcloud auth configure-docker $REGION-docker.pkg.dev
+          echo ${{ secrets.GCP_SA_KEY }} | docker login -u _json_key --password-stdin https://gcr.io
 
-      - name: Build & Push Docker Image
+      - name: Build and push Docker image
         run: |
-          gcloud builds submit --tag $REGION-docker.pkg.dev/$PROJECT_ID/$REPO/$SERVICE_NAME:latest .
+          IMAGE_NAME=gcr.io/${{ secrets.GCP_PROJECT_ID }}/fastapi-app:latest
+          docker build -t $IMAGE_NAME .
+          docker push $IMAGE_NAME
 
-      - name: Deploy to Cloud Run
-        run: |
-          gcloud run deploy $SERVICE_NAME \
-            --image $REGION-docker.pkg.dev/$PROJECT_ID/$REPO/$SERVICE_NAME:latest \
-            --region $REGION \
-            --platform managed \
-            --allow-unauthenticated
-            --port 80
+      - name: Deploy to Compute Engine via SSH
+        uses: appleboy/ssh-action@v0.1.5
+        with:
+          host: ${{ secrets.COMPUTE_ENGINE_IP }}
+          username: ${{ secrets.COMPUTE_ENGINE_USER }}
+          key: ${{ secrets.COMPUTE_ENGINE_SSH_KEY }}
+          port: 22
+          script: |
+            cd /opt/fastapi-deployment
+            git clone https://github.com/onyx093/fastapi-book-project .
+            # (Optional) Update the docker-compose file to use the latest image if necessary.
+            # docker-compose pull
+            docker-compose up -d
