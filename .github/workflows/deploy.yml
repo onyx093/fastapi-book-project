@@ -44,7 +44,7 @@ jobs:
           port: 22
           script: |
             cd /opt/fastapi-deployment
-            git clone https://github.com/onyx093/fastapi-book-project .
+            git clone git@github.com:onyx093/fastapi-book-project.git .
             # (Optional) Update the docker-compose file to use the latest image if necessary.
             # docker-compose pull
             docker-compose up -d
