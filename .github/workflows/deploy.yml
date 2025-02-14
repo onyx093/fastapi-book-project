@@ -43,8 +43,13 @@ jobs:
           key: ${{ secrets.COMPUTE_ENGINE_SSH_KEY }}
           port: 22
           script: |
+            # cd /opt/
+            # sudo rm -rf ./fastapi-deployment/
+            # sudo mkdir -p /opt/fastapi-deployment
+            # sudo chown $USER:$USER /opt/fastapi-deployment
+
             cd /opt/fastapi-deployment
-            git clone git@github.com:onyx093/fastapi-book-project.git .
+            git pull origin main
             # (Optional) Update the docker-compose file to use the latest image if necessary.
             # docker-compose pull && docker compose down aith others
             docker compose up -d
