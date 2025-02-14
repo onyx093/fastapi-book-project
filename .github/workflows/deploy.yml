@@ -52,4 +52,4 @@ jobs:
             git pull origin main
             # (Optional) Update the docker-compose file to use the latest image if necessary.
             # docker-compose pull && docker compose down with others
-            sudo docker compose up
+            sudo docker-compose up
